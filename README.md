@@ -58,7 +58,7 @@ flowchart LR
 | 3 | [Consistência e idempotência](docs/03-consistencia-e-idempotencia.md) | ✅ |
 | 4 | [Escalabilidade e fechamento diário](docs/04-escalabilidade-e-fechamento.md) | ✅ |
 | 5 | [Resiliência, reprocessamento e conciliação](docs/05-resiliencia-e-conciliacao.md) | ✅ |
-| 6 | Prova de conceito (Python + Kafka + MySQL em docker-compose) | ⏳ |
+| 6 | [Prova de conceito](docs/06-prova-de-conceito.md) (Python + Kafka + MySQL em docker-compose) | ✅ |
 
 ## Stack
 

@@ -234,13 +234,13 @@ E se a mesma mensagem chegar duas vezes (por exemplo, a rede caiu antes do Kafka
 | Banco do ledger | Container MySQL no docker-compose | **Amazon Aurora MySQL**, em mais de uma zona, com réplicas de leitura |
 | Serviço de Ledger | Processo Python | **ECS Fargate** (serviço sempre ligado, várias cópias) |
 | Porta de entrada | — | **Amazon API Gateway** + **AWS WAF** |
-| Login dos clientes | Token fixo de teste | **Amazon Cognito** (ou o provedor de identidade do banco) |
+| Login dos clientes | Sem login, acessível só no próprio computador | **Amazon Cognito** (ou o provedor de identidade do banco) |
 | API de consulta | Processo Python | **ECS Fargate** |
 | Tela de extrato | Página local | **S3 + CloudFront** |
 | Fechamento e conciliação | Script Python | **ECS Fargate** (tarefa agendada) disparado pelo **EventBridge Scheduler** |
 | Relay do outbox | Script Python que lê a tabela `outbox` | **MSK Connect** com Debezium (lê o outbox direto do log do banco) |
-| Arquivos do back-office e da B3 | Pasta local | **Amazon S3** |
-| Contrato dos eventos | Arquivos JSON Schema no repositório | **AWS Glue Schema Registry** |
+| Arquivos do back-office e da B3 | Valores simulados pela API | **Amazon S3** |
+| Contrato dos eventos | Envelope único definido no código | **AWS Glue Schema Registry** |
 | Senhas e conexões | Arquivo `.env` (fora do git) | **AWS Secrets Manager** |
 | Criptografia | — | **AWS KMS** (Aurora, MSK e S3 criptografados) |
 | Métricas, logs e alertas | Logs no terminal | **CloudWatch** (alarmes de fila atrasada e DLQ) + **SNS** |

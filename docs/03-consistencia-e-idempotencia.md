@@ -118,8 +118,10 @@ Na trava otimista, as duas compras tentam gravar e uma delas refaz o trabalho. E
 
 | Garantia | Situação |
 |---|---|
-| `id_evento` repetido recusado | Testado no MySQL |
-| Livro-razão sem `UPDATE` e `DELETE` | Testado no MySQL |
-| Trava com compras simultâneas | A validar na prova de conceito |
-| Máquina de estados e reserva vencida | A validar na prova de conceito |
-| Outbox e reentrega pelo Kafka | A validar na prova de conceito |
+| `id_evento` repetido recusado | Testado de ponta a ponta |
+| Livro-razão sem `UPDATE` e `DELETE` | Testado de ponta a ponta |
+| Trava com compras simultâneas | Testado com 8 compras ao mesmo tempo |
+| Máquina de estados e reserva vencida | Testado de ponta a ponta |
+| Outbox e reentrega pelo Kafka | Testado, incluindo o Ledger derrubado no meio do fluxo |
+
+Os testes estão em [`tests/test_case.py`](../tests/test_case.py). Como rodar está em [Prova de conceito](06-prova-de-conceito.md).
