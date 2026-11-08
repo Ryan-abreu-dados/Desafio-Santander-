@@ -2,85 +2,244 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Conta Virtual de Investimentos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Conta Virtual</title>
 <style>
-  :root { --vermelho: #ec0000; --ceu: #deedf2; --tinta: #1a1a1a; --apoio: #595959; --linha: #d7dfe3; }
-  * { box-sizing: border-box; }
-  body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: var(--tinta); background: #fff; }
-  header { background: var(--vermelho); color: #fff; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-  header h1 { margin: 0; font-size: 22px; }
-  header .info { display: flex; gap: 24px; font-size: 15px; font-weight: bold; }
-  main { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 20px; padding: 20px 28px; }
-  h2 { font-size: 16px; margin: 0 0 10px; }
-  .painel { background: var(--ceu); border-radius: 10px; padding: 16px; }
-  ol { list-style: none; margin: 0; padding: 0; }
-  ol li { padding: 7px 8px; border-radius: 6px; font-size: 14px; line-height: 1.3; }
-  ol li.feito { color: var(--apoio); }
-  ol li.feito::before { content: "✓ "; font-weight: bold; }
-  ol li.atual { background: #fff; font-weight: bold; }
-  button { font: inherit; cursor: pointer; border-radius: 6px; padding: 10px 14px; border: 1px solid var(--vermelho); background: #fff; color: var(--vermelho); font-weight: bold; }
-  button.principal { background: var(--vermelho); color: #fff; width: 100%; margin-top: 12px; }
-  button:disabled { opacity: .5; cursor: wait; }
-  button.texto { border: 0; background: none; padding: 8px 0 0; font-weight: normal; text-decoration: underline; color: var(--apoio); }
-  .aviso { background: #fff; border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 14px; line-height: 1.4; min-height: 64px; }
-  .aviso.erro { color: var(--vermelho); font-weight: bold; }
-  .cartoes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
-  .cartao { border: 1px solid var(--linha); border-radius: 10px; padding: 14px 16px; }
-  .cartao small { color: var(--apoio); font-size: 13px; }
-  .cartao .rotulo { color: var(--vermelho); font-weight: bold; font-size: 15px; }
-  .cartao .valor { font-size: 30px; font-weight: bold; margin: 6px 0 4px; font-variant-numeric: tabular-nums; }
-  .abas { display: flex; gap: 6px; margin: 4px 0 10px; flex-wrap: wrap; }
-  .abas button { padding: 6px 10px; font-size: 13px; font-weight: normal; }
-  .abas button.ativa { background: var(--vermelho); color: #fff; }
-  .tabela { overflow: auto; max-height: 300px; border: 1px solid var(--linha); border-radius: 8px; }
-  table { border-collapse: collapse; width: 100%; font-size: 13px; }
-  th, td { padding: 7px 10px; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--linha); }
-  th { background: var(--ceu); position: sticky; top: 0; }
-  td.num { text-align: right; font-variant-numeric: tabular-nums; }
-  tr.aberto td { color: var(--apoio); font-style: italic; }
-  tr.total td { font-weight: bold; }
-  section { margin-bottom: 18px; }
-  @media (max-width: 900px) { main { grid-template-columns: 1fr; } .cartoes { grid-template-columns: 1fr; } }
+  :root {
+    --vermelho: #ec0000; --vermelho-escuro: #c40000; --ceu: #deedf2; --ceu-claro: #f2f7f9;
+    --tinta: #1b1b1f; --apoio: #6b7076; --linha: #e8ecef; --verde: #0a8a4a; --ambar: #b26a00;
+    --sombra: 0 6px 20px rgba(20, 30, 40, .08);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body { margin: 0; font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: var(--tinta); background: var(--ceu-claro); }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--vermelho); outline-offset: 2px; }
+  svg { display: block; }
+  .icone { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Palco */
+  .palco { min-height: 100%; display: flex; justify-content: center; align-items: center; gap: 40px; padding: 24px; }
+  .aparelho { width: 402px; height: min(860px, calc(100vh - 48px)); flex: none; background: #101114; border-radius: 52px; padding: 11px; box-shadow: 0 30px 60px rgba(20, 30, 40, .28); }
+  .tela { position: relative; height: 100%; background: #f6f7f9; border-radius: 42px; overflow: hidden; display: flex; flex-direction: column; }
+  .conteudo { flex: 1; overflow-y: auto; scrollbar-width: none; animation: entrar .28s ease; }
+  .conteudo::-webkit-scrollbar { display: none; }
+  @keyframes entrar { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* Topo do app */
+  .topo { background: var(--vermelho); color: #fff; padding: 46px 22px 92px; border-radius: 0 0 30px 30px; }
+  .topo-linha { display: flex; align-items: center; justify-content: space-between; }
+  .perfil { display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,.2); display: grid; place-items: center; font-weight: 700; font-size: 15px; }
+  .perfil small { display: block; font-size: 13px; opacity: .88; }
+  .perfil strong { font-size: 18px; font-weight: 600; }
+  .icone-btn { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.16); color: #fff; }
+
+  .cartao-saldo { background: #fff; margin: -72px 18px 0; border-radius: 22px; padding: 20px; box-shadow: var(--sombra); position: relative; }
+  .rotulo { font-size: 13px; color: var(--apoio); }
+  .valor-grande { font-size: 34px; font-weight: 700; letter-spacing: -.8px; margin: 4px 0 16px; font-variant-numeric: tabular-nums; }
+  .saldos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-top: 1px solid var(--linha); padding-top: 14px; }
+  .saldos strong { display: block; font-size: 16px; font-weight: 650; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .seletor-data { border: 0; background: var(--ceu); border-radius: 8px; padding: 1px 4px; font: inherit; font-size: 12px; color: var(--tinta); font-weight: 600; }
+
+  .atalhos { display: grid; grid-template-columns: repeat(4, 1fr); padding: 20px 14px 4px; }
+  .atalho { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 500; }
+  .atalho span { width: 54px; height: 54px; border-radius: 18px; background: #fff; color: var(--vermelho); display: grid; place-items: center; box-shadow: var(--sombra); transition: transform .15s; }
+  .atalho:hover span { transform: translateY(-2px); }
+
+  .secao { padding: 20px 18px 0; }
+  .secao-titulo { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .secao-titulo h2 { font-size: 17px; font-weight: 650; margin: 0; }
+  .link { color: var(--vermelho); font-size: 13.5px; font-weight: 600; }
+  .lista { background: #fff; border-radius: 18px; box-shadow: var(--sombra); overflow: hidden; }
+  .item { display: flex; align-items: center; gap: 12px; padding: 14px; width: 100%; text-align: left; border-bottom: 1px solid var(--linha); }
+  .item:last-child { border-bottom: 0; }
+  .item-icone { width: 40px; height: 40px; flex: none; border-radius: 13px; display: grid; place-items: center; background: var(--ceu-claro); color: var(--tinta); }
+  .item-icone.saida { background: #fdeaea; color: var(--vermelho); }
+  .item-icone.entrada { background: #e4f5ec; color: var(--verde); }
+  .item-texto { flex: 1; min-width: 0; }
+  .item-texto strong { display: block; font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-texto small { color: var(--apoio); font-size: 12.5px; }
+  .item-valor { text-align: right; font-size: 14.5px; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .item-valor.positivo { color: var(--verde); }
+  .selo { display: inline-block; font-size: 11px; font-weight: 650; padding: 2px 8px; border-radius: 20px; background: var(--ceu); color: #245567; margin-top: 3px; }
+  .selo.ambar { background: #fdf0d9; color: var(--ambar); }
+  .selo.verde { background: #e4f5ec; color: var(--verde); }
+  .selo.cinza { background: #eceff1; color: var(--apoio); }
+  .vazio { padding: 26px 18px; text-align: center; color: var(--apoio); font-size: 14px; }
+  .folga { height: 22px; }
+
+  /* Navegação */
+  .nav { display: grid; grid-template-columns: repeat(4, 1fr); background: #fff; border-top: 1px solid var(--linha); padding: 9px 8px 20px; flex: none; }
+  .nav button { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11.5px; color: var(--apoio); font-weight: 500; }
+  .nav button.ativo { color: var(--vermelho); font-weight: 650; }
+
+  /* Telas internas */
+  .cabecalho { display: flex; align-items: center; gap: 10px; padding: 50px 16px 14px; background: #fff; position: sticky; top: 0; z-index: 2; }
+  .cabecalho h1 { font-size: 18px; font-weight: 650; margin: 0; }
+  .voltar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--ceu-claro); }
+  .abas-app { display: flex; background: #e9edf0; border-radius: 13px; padding: 4px; margin: 14px 18px 0; }
+  .abas-app button { flex: 1; padding: 9px; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--apoio); }
+  .abas-app button.ativo { background: #fff; color: var(--tinta); box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+  .chips { display: flex; gap: 8px; padding: 14px 18px 0; overflow-x: auto; scrollbar-width: none; }
+  .chip { flex: none; border: 1px solid var(--linha); background: #fff; border-radius: 20px; padding: 7px 14px; font-size: 13.5px; font-weight: 550; }
+  .chip.ativo { background: var(--vermelho); border-color: var(--vermelho); color: #fff; }
+  .prazo { font-size: 12px; color: var(--apoio); }
+  .resumo-extrato { margin: 14px 18px 0; background: #fff; border-radius: 18px; box-shadow: var(--sombra); padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .resumo-extrato strong { display: block; font-size: 17px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .dia { font-size: 13px; font-weight: 650; color: var(--apoio); margin: 16px 2px 8px; }
+
+  .form { padding: 22px 20px; }
+  .form h2 { font-size: 22px; font-weight: 650; margin: 0 0 6px; letter-spacing: -.3px; }
+  .form p { margin: 0; color: var(--apoio); font-size: 14px; line-height: 1.45; }
+  .entrada-valor { width: 100%; border: 0; border-bottom: 2px solid var(--linha); background: none; font: inherit; font-size: 38px; font-weight: 700; padding: 14px 0 10px; margin-top: 14px; font-variant-numeric: tabular-nums; }
+  .entrada-valor:focus { outline: none; border-color: var(--vermelho); }
+  .detalhes { background: #fff; border-radius: 18px; box-shadow: var(--sombra); padding: 4px 16px; margin-top: 18px; }
+  .detalhe { display: flex; justify-content: space-between; gap: 16px; padding: 13px 0; border-bottom: 1px solid var(--linha); font-size: 14px; }
+  .detalhe:last-child { border-bottom: 0; }
+  .detalhe span:first-child { color: var(--apoio); }
+  .detalhe span:last-child { font-weight: 600; text-align: right; }
+  .nota { display: flex; gap: 10px; background: var(--ceu); border-radius: 14px; padding: 13px; margin-top: 14px; font-size: 13px; line-height: 1.4; color: #1f4453; }
+  .nota .icone { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+  .rodape { padding: 12px 20px 20px; background: #f6f7f9; flex: none; }
+  .botao { display: block; width: 100%; background: var(--vermelho); color: #fff; font-weight: 650; font-size: 16px; padding: 15px; border-radius: 15px; text-align: center; transition: background .15s; }
+  .botao:hover { background: var(--vermelho-escuro); }
+  .botao:disabled { background: #d9dde0; color: #8b9095; cursor: default; }
+  .botao.secundario { background: #fff; color: var(--vermelho); border: 1.5px solid var(--vermelho); margin-top: 10px; }
+  .botao.secundario:hover { background: #fff5f5; }
+  .resultado { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px 28px; }
+  .resultado h2 { font-size: 23px; font-weight: 650; margin: 20px 0 8px; }
+  .resultado p { margin: 0; color: var(--apoio); font-size: 14.5px; line-height: 1.45; }
+  .selo-grande { width: 86px; height: 86px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: var(--verde); animation: pular .45s cubic-bezier(.2, 1.5, .4, 1); }
+  .selo-grande.erro { background: var(--vermelho); }
+  .selo-grande .icone { width: 42px; height: 42px; stroke-width: 2.6; }
+  @keyframes pular { from { transform: scale(.3); opacity: 0; } to { transform: none; opacity: 1; } }
+  .girar { width: 46px; height: 46px; border: 4px solid var(--linha); border-top-color: var(--vermelho); border-radius: 50%; animation: giro .8s linear infinite; }
+  @keyframes giro { to { transform: rotate(360deg); } }
+
+  /* Boas-vindas */
+  .boas-vindas { flex: 1; background: var(--vermelho); color: #fff; display: flex; flex-direction: column; justify-content: flex-end; padding: 40px 28px 40px; }
+  .boas-vindas .marca { width: 66px; height: 66px; border-radius: 20px; background: #fff; color: var(--vermelho); display: grid; place-items: center; font-weight: 800; font-size: 24px; margin-bottom: auto; margin-top: 34px; }
+  .boas-vindas h1 { font-size: 36px; line-height: 1.1; letter-spacing: -.8px; margin: 0 0 12px; }
+  .boas-vindas p { margin: 0 0 28px; font-size: 16px; line-height: 1.45; opacity: .92; }
+  .boas-vindas .botao { background: #fff; color: var(--vermelho); }
+
+  /* Folha inferior */
+  .veu { position: absolute; inset: 0; background: rgba(15, 20, 25, .42); z-index: 5; display: flex; align-items: flex-end; animation: surgir .2s; }
+  @keyframes surgir { from { opacity: 0; } }
+  .folha { background: #fff; width: 100%; border-radius: 26px 26px 0 0; padding: 12px 20px 26px; animation: subir .26s ease; max-height: 86%; overflow-y: auto; }
+  @keyframes subir { from { transform: translateY(40px); } }
+  .alca { width: 40px; height: 4px; border-radius: 3px; background: #d6dbdf; margin: 0 auto 16px; }
+  .folha h3 { font-size: 19px; font-weight: 650; margin: 0 0 2px; }
+  .passos-op { margin: 16px 0 6px; }
+  .passo-op { display: flex; gap: 12px; font-size: 14px; padding-bottom: 14px; position: relative; }
+  .passo-op i { width: 12px; height: 12px; border-radius: 50%; background: #d6dbdf; margin-top: 4px; flex: none; }
+  .passo-op.feito i { background: var(--verde); }
+  .passo-op.alerta i { background: var(--ambar); }
+  .passo-op.erro i { background: var(--vermelho); }
+  .passo-op:not(:last-child)::after { content: ""; position: absolute; left: 5px; top: 19px; bottom: 0; width: 2px; background: var(--linha); }
+
+  /* Bastidores */
+  .bastidores { width: min(720px, calc(100vw - 500px)); height: min(860px, calc(100vh - 48px)); display: flex; flex-direction: column; }
+  .bastidores header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 14px; }
+  .bastidores h2 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -.3px; }
+  .bastidores header small { display: block; color: var(--apoio); font-size: 13px; margin-top: 1px; }
+  .abas-b { display: flex; gap: 4px; background: #e3e9ed; padding: 4px; border-radius: 12px; }
+  .abas-b button { padding: 7px 14px; border-radius: 9px; font-size: 13.5px; font-weight: 600; color: var(--apoio); }
+  .abas-b button.ativo { background: #fff; color: var(--tinta); }
+  .painel-b { flex: 1; overflow-y: auto; display: grid; gap: 12px; align-content: start; padding-right: 2px; }
+  .bloco { background: #fff; border-radius: 16px; padding: 16px; box-shadow: 0 2px 10px rgba(20,30,40,.05); }
+  .bloco h3 { margin: 0 0 3px; font-size: 15px; font-weight: 650; }
+  .bloco > p { margin: 0 0 12px; color: var(--apoio); font-size: 13px; line-height: 1.4; }
+  .linha-data { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .data-atual { font-size: 22px; font-weight: 700; margin-right: 8px; font-variant-numeric: tabular-nums; }
+  .b-chip { border: 1px solid var(--linha); border-radius: 9px; padding: 7px 11px; font-size: 13px; font-weight: 600; background: #fff; }
+  .b-chip:hover { border-color: var(--vermelho); color: var(--vermelho); }
+  .b-op { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--linha); font-size: 13.5px; }
+  .b-op div { flex: 1; min-width: 0; }
+  .b-op strong { font-weight: 600; }
+  .b-op small { display: block; color: var(--apoio); font-size: 12.5px; }
+  .b-acao { border-radius: 9px; padding: 7px 11px; font-size: 13px; font-weight: 650; background: var(--verde); color: #fff; }
+  .b-acao.neg { background: #fff; color: var(--vermelho); border: 1px solid var(--vermelho); }
+  .provas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .prova { text-align: left; border: 1px solid var(--linha); border-radius: 12px; padding: 11px 12px; font-size: 13.5px; font-weight: 600; transition: border-color .15s; }
+  .prova:hover { border-color: var(--vermelho); }
+  .prova small { display: block; color: var(--apoio); font-weight: 400; font-size: 12px; margin-top: 2px; line-height: 1.3; }
+  .log { display: grid; gap: 8px; }
+  .log div { display: flex; gap: 10px; font-size: 13px; line-height: 1.35; }
+  .log time { color: var(--apoio); font-variant-numeric: tabular-nums; flex: none; }
+  .log .ok { color: var(--verde); font-weight: 600; }
+  .log .barrado { color: var(--vermelho); font-weight: 600; }
+  .tabela-b { overflow: auto; border: 1px solid var(--linha); border-radius: 12px; max-height: 620px; }
+  .tabela-b table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  .tabela-b th, .tabela-b td { padding: 8px 10px; white-space: nowrap; text-align: left; border-bottom: 1px solid var(--linha); }
+  .tabela-b th { position: sticky; top: 0; background: var(--ceu); font-weight: 650; }
+  .chips-b { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .chips-b .b-chip.ativo { background: var(--vermelho); color: #fff; border-color: var(--vermelho); }
+  .abrir-b { display: none; }
+
+  @media (max-width: 1050px) {
+    .palco { padding: 0; display: block; }
+    .aparelho { width: 100%; height: 100dvh; border-radius: 0; padding: 0; box-shadow: none; }
+    .tela { border-radius: 0; }
+    .bastidores { display: none; position: fixed; inset: 0; width: 100%; height: 100dvh; background: var(--ceu-claro); padding: 18px; z-index: 20; }
+    .bastidores.aberto { display: flex; }
+    .abrir-b { display: grid; place-items: center; position: fixed; right: 14px; bottom: 86px; width: 50px; height: 50px; border-radius: 50%; background: var(--tinta); color: #fff; z-index: 10; }
+    .fechar-b { display: block !important; }
+    .provas { grid-template-columns: 1fr; }
+  }
+  .fechar-b { display: none; font-weight: 600; font-size: 14px; color: var(--vermelho); }
 </style>
 </head>
 <body>
-<header>
-  <h1>Conta Virtual de Investimentos</h1>
-  <div class="info"><span id="conta">Sem conta</span><span>Hoje: <span id="hoje">-</span></span></div>
-</header>
-<main>
-  <aside class="painel">
-    <h2>Roteiro da demonstração</h2>
-    <ol id="passos"></ol>
-    <button class="principal" id="avancar">Executar próximo passo</button>
-    <div class="aviso" id="aviso">Clique para começar.</div>
-    <button class="texto" id="recomecar">Recomeçar com uma conta nova</button>
-  </aside>
-  <div>
-    <div class="cartoes">
-      <div class="cartao"><div class="rotulo">Efetivo</div><div class="valor" id="efetivo">-</div><small>Só o que já liquidou</small></div>
-      <div class="cartao"><div class="rotulo">Disponível</div><div class="valor" id="disponivel">-</div><small>O que ainda pode ser gasto</small></div>
-      <div class="cartao"><div class="rotulo">Projetado em <select id="dataProjecao"><option value="2026-11-11">11/11</option><option value="2026-12-01">01/12</option></select></div><div class="valor" id="projetado">-</div><small>Inclui o que vai liquidar</small></div>
-    </div>
-    <section>
-      <h2>Extrato de 01/11 a 01/12</h2>
-      <div class="abas" id="abasExtrato"></div>
-      <div class="tabela"><table id="extrato"></table></div>
-    </section>
-    <section>
-      <h2>O que está salvo no banco</h2>
-      <div class="abas" id="abasBanco"></div>
-      <div class="tabela"><table id="banco"></table></div>
-    </section>
-  </div>
-</main>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V21h14V9.5"/></symbol>
+  <symbol id="i-sobe" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+  <symbol id="i-agenda" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></symbol>
+  <symbol id="i-lista" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-olho" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-olho-off" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.3 4M6.5 6.6A17 17 0 0 0 2 12s4 7 10 7a10 10 0 0 0 4.4-1"/></symbol>
+  <symbol id="i-volta" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-seta" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-saida" viewBox="0 0 24 24"><path d="M7 17L17 7"/><path d="M9 7h8v8"/></symbol>
+  <symbol id="i-entrada" viewBox="0 0 24 24"><path d="M17 7L7 17"/><path d="M15 17H7V9"/></symbol>
+  <symbol id="i-ok" viewBox="0 0 24 24"><path d="M5 12.5l5 5L19 7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  <symbol id="i-engrenagem" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></symbol>
+</svg>
+
+<div class="palco">
+  <div class="aparelho"><div class="tela" id="tela"></div></div>
+  <aside class="bastidores" id="bastidores"></aside>
+</div>
+<button class="abrir-b" id="abrirB" aria-label="Abrir bastidores"><svg class="icone"><use href="#i-engrenagem"/></svg></button>
+
 <script>
-const $ = (id) => document.getElementById(id);
-const dinheiro = (v) => v == null ? "-" : Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const dataBR = (d) => d.split("-").reverse().slice(0, 2).join("/");
+const PRODUTOS = [
+  { id: "liquidez", nome: "Renda Fixa Liquidez Diária", dias: 0 },
+  { id: "plus", nome: "Fundo Renda Fixa Plus", dias: 10 },
+  { id: "multi", nome: "Fundo Multimercado", dias: 30 },
+];
+const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+const app = {
+  conta: null, hoje: "2026-11-01", tela: "inicio", oculto: false, produtos: {},
+  saldos: null, ops: [], extrato: null, visao: "efetivo", periodo: "nov", projecao: null,
+  fluxo: null, folha: null, aba: "simulador", tabela: "lancamento", linhas: [], log: [], modo: "compra",
+};
+
+const guardar = () => { try { localStorage.setItem("conta-virtual", JSON.stringify({ conta: app.conta, hoje: app.hoje, produtos: app.produtos })); } catch (e) {} };
+const lembrar = () => { try { return JSON.parse(localStorage.getItem("conta-virtual")) || {}; } catch (e) { return {}; } };
+
+const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const icone = (n) => `<svg class="icone"><use href="#i-${n}"/></svg>`;
+const moeda = (v) => Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const mostrar = (v) => app.oculto ? "R$ ••••••" : moeda(v);
+const dia = (d) => `${d.slice(8, 10)} ${MESES[Number(d.slice(5, 7)) - 1]}`;
+const curta = (d) => `${d.slice(8, 10)}/${d.slice(5, 7)}`;
+const somar = (d, n) => { const x = new Date(`${d}T12:00:00`); x.setDate(x.getDate() + n); return x.toLocaleDateString("sv-SE"); };
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
-const estado = { conta: null, hoje: "2026-11-01", ops: {}, passo: 0, visao: "efetivo", tabela: "lancamento" };
 
 async function chamar(url, corpo) {
   const r = await fetch(url, corpo ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) } : undefined);
@@ -88,164 +247,426 @@ async function chamar(url, corpo) {
   if (!r.ok) { const e = new Error(dados.detail); e.status = r.status; throw e; }
   return dados;
 }
-const quando = (hora) => `${estado.hoje}T${hora}:00`;
-const ordem = (valor, data_liquidacao) => ({ conta_id: estado.conta, valor, data_liquidacao, ocorrido_em: quando("10:00") });
-const liquidar = (op) => chamar("/demo/liquidar", { operacao_id: estado.ops[op], ocorrido_em: quando("18:00") });
-const fechar = () => chamar("/demo/fechar", { conta_id: estado.conta, dia: estado.hoje });
-const linhasLivro = async () => (await chamar(`/demo/tabelas/lancamento?conta_id=${estado.conta}`)).length;
 
-const PASSOS = [
-  { titulo: "Abrir a conta com R$ 100 mil", hoje: "2026-11-01", acao: async () => {
-    await chamar("/demo/abrir", { conta_id: estado.conta, valor: 100000, dia: "2026-10-31" });
-    await chamar("/demo/fechar", { conta_id: estado.conta, dia: "2026-10-31" });
-    return "Saldo inicial gravado como uma linha no livro.";
-  } },
-  { titulo: "Comprar R$ 30 mil, liquida em D+0", acao: async () => {
-    estado.ops.c30 = (await chamar("/compras", ordem(30000, "2026-11-01"))).operacao_id;
-    return "Dinheiro reservado: o disponível caiu, o efetivo não mudou.";
-  } },
-  { titulo: "B3 confirma a liquidação de R$ 30 mil", acao: async () => {
-    await liquidar("c30");
-    return "Agora o efetivo mudou: R$ 70 mil. Uma linha nova entrou no livro.";
-  } },
-  { titulo: "Comprar R$ 40 mil, liquida em D+10", acao: async () => {
-    estado.ops.c40 = (await chamar("/compras", ordem(40000, "2026-11-11"))).operacao_id;
-    $("dataProjecao").value = "2026-11-11";
-    return "Projetado em 11/11: R$ 30 mil. Disponível: R$ 30 mil.";
-  } },
-  { titulo: "Vender R$ 20 mil, liquida em D+30", acao: async () => {
-    estado.ops.v20 = (await chamar("/vendas", ordem(20000, "2026-12-01"))).operacao_id;
-    $("dataProjecao").value = "2026-12-01";
-    return "Projetado em 01/12: R$ 50 mil. A venda não aumenta o disponível, porque o dinheiro ainda não chegou.";
-  } },
-  { titulo: "Tentar comprar R$ 50 mil sem saldo", acao: async () => {
-    try { await chamar("/compras", ordem(50000, "2026-11-20")); return "Inesperado: a compra passou."; }
-    catch (e) { if (e.status === 409) return `Recusada na hora. ${e.message}`; throw e; }
-  } },
-  { titulo: "Reenviar o mesmo evento pelo Kafka", acao: async () => {
-    const antes = await linhasLivro();
-    const r = await chamar("/demo/reenviar", { conta_id: estado.conta });
-    await espera(2000);
-    return `${r.tipo} enviado de novo com o mesmo id_evento. Linhas no livro: ${antes} antes, ${await linhasLivro()} depois. O saldo não mudou.`;
-  } },
-  { titulo: "Fechar o dia 01/11", acao: async () => { await fechar(); return "Foto do dia gravada em fechamento_diario. Esse dia não muda mais."; } },
-  { titulo: "11/11: B3 liquida a compra de R$ 40 mil", hoje: "2026-11-11", acao: async () => {
-    await liquidar("c40");
-    $("dataProjecao").value = "2026-12-01";
-    return "Efetivo em 11/11: R$ 30 mil.";
-  } },
-  { titulo: "Fechar o dia 11/11", acao: async () => { await fechar(); return "Dia 11/11 fechado."; } },
-  { titulo: "01/12: B3 liquida a venda de R$ 20 mil", hoje: "2026-12-01", acao: async () => { await liquidar("v20"); return "Efetivo em 01/12: R$ 50 mil, como pede o case."; } },
-  { titulo: "Fechar o dia 01/12", acao: async () => { await fechar(); return "Dia 01/12 fechado."; } },
-  { titulo: "Conciliar 11/11 com um erro na B3", tabela: "divergencia", acao: async () => {
-    const r = await chamar("/demo/conciliar", { conta_id: estado.conta, dia: "2026-11-11", erro_b3: 1000 });
-    return `${r.divergencias} divergência registrada: o arquivo simulado da B3 veio com R$ 1.000 de diferença.`;
-  } },
-  { titulo: "Tentar UPDATE com o usuário do sistema", tabela: "lancamento", acao: async () => {
-    const r = await chamar("/demo/alterar", { conta_id: estado.conta, usuario: "app" });
-    return r.recusado ? `Banco recusou: ${r.erro}` : "Inesperado: o banco aceitou.";
-  } },
-  { titulo: "Tentar UPDATE com usuário que tem permissão", acao: async () => {
-    const r = await chamar("/demo/alterar", { conta_id: estado.conta, usuario: "demo" });
-    return r.recusado ? `Trigger recusou: ${r.erro}` : "Inesperado: o banco aceitou.";
-  } },
-];
+function nomeOp(op) { return app.produtos[op.operacao_id] || (op.tipo === "VENDA" ? "Venda" : "Compra"); }
+const abertas = () => app.ops.filter((o) => ["PROVISIONADO", "PENDENTE"].includes(o.status)).sort((a, b) => a.data_liquidacao.localeCompare(b.data_liquidacao));
+const datasProjecao = () => [...new Set([app.hoje, ...abertas().map((o) => o.data_liquidacao)])].sort();
 
-function desenharPassos() {
-  const lista = $("passos");
-  lista.replaceChildren(...PASSOS.map((p, i) => {
-    const li = document.createElement("li");
-    li.textContent = `${i + 1}. ${p.titulo}`;
-    li.className = i < estado.passo ? "feito" : i === estado.passo ? "atual" : "";
-    return li;
-  }));
-  $("avancar").textContent = estado.passo < PASSOS.length ? "Executar próximo passo" : "Demonstração concluída";
-  $("avancar").disabled = estado.passo >= PASSOS.length;
-}
+const PERIODOS = { nov: ["2026-11-01", "2026-11-30", "Novembro"], dez: ["2026-12-01", "2026-12-31", "Dezembro"], tudo: ["2026-10-31", "2026-12-31", "Tudo"] };
 
-function preencher(tabela, colunas, linhas, classe) {
-  const cab = document.createElement("tr");
-  colunas.forEach((c) => { const th = document.createElement("th"); th.textContent = c; cab.append(th); });
-  const corpo = linhas.map((l) => {
-    const tr = document.createElement("tr");
-    if (classe) tr.className = classe(l);
-    colunas.forEach((c) => {
-      const td = document.createElement("td");
-      const v = l[c];
-      td.textContent = v == null ? "" : typeof v === "object" ? JSON.stringify(v) : v;
-      tr.append(td);
-    });
-    return tr;
-  });
-  tabela.replaceChildren(cab, ...corpo);
-}
-
-async function atualizar() {
-  $("conta").textContent = estado.conta || "Sem conta";
-  $("hoje").textContent = dataBR(estado.hoje);
-  if (!estado.conta || estado.passo === 0) return;
+async function carregar() {
+  if (!app.conta) return false;
   try {
-    const s = await chamar(`/contas/${estado.conta}/saldos?hoje=${estado.hoje}&data_projecao=${$("dataProjecao").value}`);
-    $("efetivo").textContent = dinheiro(s.efetivo);
-    $("disponivel").textContent = dinheiro(s.disponivel);
-    $("projetado").textContent = dinheiro(s.projetado);
-    const e = await chamar(`/contas/${estado.conta}/extrato?inicio=2026-11-01&fim=2026-12-01&hoje=${estado.hoje}&visao=${estado.visao}`);
-    const linhas = [
-      { Data: "", "Lançamento": "Saldo inicial", "Situação": "", Valor: dinheiro(e.saldo_inicial), t: 1 },
-      ...e.linhas.map((l) => ({ Data: dataBR(l.data), "Lançamento": l.tipo, "Situação": l.marca, Valor: dinheiro(l.valor), aberto: l.aberto })),
-      { Data: "", "Lançamento": "Saldo final", "Situação": "", Valor: dinheiro(e.saldo_final), t: 1 },
-    ];
-    preencher($("extrato"), ["Data", "Lançamento", "Situação", "Valor"], linhas, (l) => l.t ? "total" : l.aberto ? "aberto" : "");
-    const dados = await chamar(`/demo/tabelas/${estado.tabela}?conta_id=${estado.conta}`);
-    preencher($("banco"), dados.length ? Object.keys(dados[0]) : ["Sem linhas"], dados);
-  } catch (erro) { /* a conta pode ainda não existir no primeiro instante */ }
-}
-
-function abas(alvo, nomes, atual, aoEscolher) {
-  const desenhar = (selecionada) => alvo.replaceChildren(...nomes.map(([valor, rotulo]) => {
-    const b = document.createElement("button");
-    b.textContent = rotulo;
-    b.className = valor === selecionada ? "ativa" : "";
-    b.onclick = () => { desenhar(valor); aoEscolher(valor); atualizar(); };
-    return b;
-  }));
-  desenhar(atual);
-  return desenhar;
-}
-
-abas($("abasExtrato"), [["efetivo", "Efetivo"], ["projetado", "Projetado"]], estado.visao, (v) => estado.visao = v);
-const marcarTabela = abas($("abasBanco"), ["lancamento", "operacao", "saldo_conta", "fechamento_diario", "evento_processado", "outbox", "divergencia"].map((t) => [t, t]), estado.tabela, (v) => estado.tabela = v);
-$("dataProjecao").onchange = atualizar;
-
-async function novaConta() {
-  estado.conta = (await chamar("/demo/proxima-conta")).conta_id;
-  estado.passo = 0; estado.ops = {}; estado.hoje = "2026-11-01";
-  ["efetivo", "disponivel", "projetado"].forEach((id) => $(id).textContent = "-");
-  $("extrato").replaceChildren(); $("banco").replaceChildren();
-  $("aviso").textContent = "Clique para começar."; $("aviso").className = "aviso";
-  desenharPassos(); atualizar();
-}
-
-$("recomecar").onclick = novaConta;
-$("avancar").onclick = async () => {
-  const passo = PASSOS[estado.passo];
-  $("avancar").disabled = true;
-  try {
-    if (passo.hoje) estado.hoje = passo.hoje;
-    if (passo.tabela) { estado.tabela = passo.tabela; marcarTabela(passo.tabela); }
-    const msg = await passo.acao();
-    await espera(1200);
-    $("aviso").textContent = msg; $("aviso").className = "aviso";
-    estado.passo++;
-  } catch (erro) {
-    $("aviso").textContent = `Erro: ${erro.message}`; $("aviso").className = "aviso erro";
+    const datas = datasProjecao();
+    if (!app.projecao || !datas.includes(app.projecao)) app.projecao = datas[datas.length - 1];
+    const [saldos, ops] = await Promise.all([
+      chamar(`/contas/${app.conta}/saldos?hoje=${app.hoje}&data_projecao=${app.projecao}`),
+      chamar(`/demo/tabelas/operacao?conta_id=${app.conta}`),
+    ]);
+    app.saldos = saldos; app.ops = ops;
+    const [ini, fim] = PERIODOS[app.periodo];
+    app.extrato = await chamar(`/contas/${app.conta}/extrato?inicio=${ini}&fim=${fim}&hoje=${app.hoje}&visao=${app.visao}`);
+    if (app.aba === "banco") app.linhas = await chamar(`/demo/tabelas/${app.tabela}?conta_id=${app.conta}`);
+    return true;
+  } catch (e) {
+    if (e.status === 404) { app.conta = null; app.saldos = null; guardar(); }
+    return false;
   }
-  desenharPassos(); await atualizar();
-};
+}
 
-desenharPassos();
-novaConta();
-setInterval(atualizar, 3000);
+function registrar(texto, classe) {
+  const hora = new Date().toLocaleTimeString("pt-BR");
+  app.log.unshift({ hora, texto, classe });
+  app.log = app.log.slice(0, 30);
+}
+
+/* ---------- Telas do aplicativo ---------- */
+function linhaOp(op) {
+  const entrada = op.natureza === "CREDITO";
+  const pendente = op.status === "PENDENTE";
+  return `<button class="item" data-op="${esc(op.operacao_id)}">
+    <span class="item-icone ${entrada ? "entrada" : "saida"}">${icone(entrada ? "entrada" : "saida")}</span>
+    <span class="item-texto"><strong>${esc(nomeOp(op))}</strong><small>Liquida em ${dia(op.data_liquidacao)}</small></span>
+    <span class="item-valor">${app.oculto ? "••••" : (entrada ? "+" : "-") + moeda(op.valor)}<br><span class="selo ${pendente ? "ambar" : ""}">${pendente ? "Em análise" : "Reservado"}</span></span>
+  </button>`;
+}
+
+function telaInicio() {
+  const s = app.saldos;
+  const ops = abertas().slice(0, 3);
+  const mov = (app.extrato?.linhas || []).filter((l) => !l.aberto).slice(-3).reverse();
+  return `<div class="conteudo">
+    <div class="topo"><div class="topo-linha">
+      <div class="perfil"><div class="avatar">CF</div><div><small>Olá,</small><strong>Cliente Fictício</strong></div></div>
+      <button class="icone-btn" data-acao="olho" aria-label="Mostrar ou ocultar valores">${icone(app.oculto ? "olho-off" : "olho")}</button>
+    </div></div>
+    <div class="cartao-saldo">
+      <div class="rotulo">Disponível para investir</div>
+      <div class="valor-grande">${mostrar(s.disponivel)}</div>
+      <div class="saldos">
+        <div><div class="rotulo">Saldo efetivo</div><strong>${mostrar(s.efetivo)}</strong></div>
+        <div><div class="rotulo">Projetado em <select class="seletor-data" id="projecao" aria-label="Data da projeção">${datasProjecao().map((d) => `<option value="${d}" ${d === app.projecao ? "selected" : ""}>${curta(d)}</option>`).join("")}</select></div><strong>${mostrar(s.projetado)}</strong></div>
+      </div>
+    </div>
+    <div class="atalhos">
+      <button class="atalho" data-ir="investir" data-modo="compra"><span>${icone("sobe")}</span>Investir</button>
+      <button class="atalho" data-ir="investir" data-modo="venda"><span>${icone("entrada")}</span>Resgatar</button>
+      <button class="atalho" data-ir="agenda"><span>${icone("agenda")}</span>Agenda</button>
+      <button class="atalho" data-ir="extrato"><span>${icone("lista")}</span>Extrato</button>
+    </div>
+    <div class="secao">
+      <div class="secao-titulo"><h2>A liquidar</h2>${abertas().length ? `<button class="link" data-ir="agenda">Ver todos</button>` : ""}</div>
+      <div class="lista">${ops.length ? ops.map(linhaOp).join("") : `<div class="vazio">Nenhum compromisso futuro.</div>`}</div>
+    </div>
+    <div class="secao">
+      <div class="secao-titulo"><h2>Últimas movimentações</h2><button class="link" data-ir="extrato">Extrato</button></div>
+      <div class="lista">${mov.length ? mov.map(linhaExtrato).join("") : `<div class="vazio">Nenhuma movimentação neste período.</div>`}</div>
+    </div>
+    <div class="folga"></div>
+  </div>${nav()}`;
+}
+
+function linhaExtrato(l) {
+  const valor = Number(l.valor);
+  const entrada = valor > 0;
+  const nome = l.tipo === "AJUSTE" ? "Ajuste de liquidação" : l.tipo === "ABERTURA" ? "Saldo de abertura" : app.produtos[l.operacao_id] || (l.tipo === "VENDA" ? "Venda" : "Compra");
+  const classe = l.aberto ? (l.status === "PENDENTE" ? "ambar" : "") : l.marca === "AJUSTE" ? "ambar" : "verde";
+  return `<div class="item">
+    <span class="item-icone ${entrada ? "entrada" : "saida"}">${icone(entrada ? "entrada" : "saida")}</span>
+    <span class="item-texto"><strong>${esc(nome)}</strong><span class="selo ${classe}">${esc(l.marca === "AJUSTE" ? "Ajuste" : l.marca)}</span></span>
+    <span class="item-valor ${entrada ? "positivo" : ""}">${app.oculto ? "••••" : (entrada ? "+" : "") + moeda(valor)}</span>
+  </div>`;
+}
+
+function telaExtrato() {
+  const e = app.extrato;
+  const grupos = {};
+  e.linhas.forEach((l) => (grupos[l.data] = grupos[l.data] || []).push(l));
+  const dias = Object.keys(grupos).sort();
+  return `<div class="cabecalho"><h1>Extrato</h1></div>
+  <div class="conteudo">
+    <div class="abas-app">${[["efetivo", "Efetivo"], ["projetado", "Projetado"]].map(([v, r]) => `<button data-visao="${v}" class="${app.visao === v ? "ativo" : ""}">${r}</button>`).join("")}</div>
+    <div class="chips">${Object.entries(PERIODOS).map(([k, p]) => `<button class="chip ${app.periodo === k ? "ativo" : ""}" data-periodo="${k}">${p[2]}</button>`).join("")}</div>
+    <div class="resumo-extrato">
+      <div><div class="rotulo">Saldo inicial</div><strong>${mostrar(e.saldo_inicial)}</strong></div>
+      <div><div class="rotulo">Saldo final</div><strong>${mostrar(e.saldo_final)}</strong></div>
+    </div>
+    <div class="secao" style="padding-top:2px">
+      ${dias.length ? dias.map((d) => `<div class="dia">${dia(d)}</div><div class="lista">${grupos[d].map(linhaExtrato).join("")}</div>`).join("") : `<div class="lista" style="margin-top:14px"><div class="vazio">Sem lançamentos neste período.</div></div>`}
+    </div>
+    <div class="folga"></div>
+  </div>${nav()}`;
+}
+
+function telaAgenda() {
+  const lista = abertas();
+  const liquidadas = app.ops.filter((o) => o.status === "LIQUIDADO").length;
+  return `<div class="cabecalho"><h1>Agenda de liquidações</h1></div>
+  <div class="conteudo">
+    <div class="secao">
+      <div class="lista">${lista.length ? lista.map(linhaOp).join("") : `<div class="vazio">Nenhum compromisso futuro.</div>`}</div>
+      <div class="nota">${icone("info")}<span>O valor das compras fica reservado até a liquidação. ${liquidadas ? `${liquidadas} operação${liquidadas > 1 ? "ões" : ""} já liquidada${liquidadas > 1 ? "s" : ""}.` : ""}</span></div>
+    </div>
+  </div>${nav()}`;
+}
+
+function telaInvestir() {
+  const modo = app.modo;
+  return `<div class="cabecalho"><h1>Investir</h1></div>
+  <div class="conteudo">
+    <div class="abas-app">${[["compra", "Comprar"], ["venda", "Vender"]].map(([v, r]) => `<button data-modo-aba="${v}" class="${modo === v ? "ativo" : ""}">${r}</button>`).join("")}</div>
+    <div class="secao">
+      <div class="lista">${PRODUTOS.map((p) => `<button class="item" data-produto="${p.id}">
+        <span class="item-icone">${icone("sobe")}</span>
+        <span class="item-texto"><strong>${esc(p.nome)}</strong><small>Liquidação em ${p.dias === 0 ? "D+0" : `D+${p.dias}`}</small></span>
+        ${icone("seta")}
+      </button>`).join("")}</div>
+      <div class="nota">${icone("info")}<span>${modo === "compra" ? "O dinheiro sai do disponível na hora e deixa o saldo efetivo só na liquidação." : "O valor só entra no saldo depois da liquidação."}</span></div>
+    </div>
+  </div>${nav()}`;
+}
+
+function nav() {
+  const itens = [["inicio", "casa", "Início"], ["investir", "sobe", "Investir"], ["agenda", "agenda", "Agenda"], ["extrato", "lista", "Extrato"]];
+  return `<nav class="nav">${itens.map(([t, i, r]) => `<button data-ir="${t}" class="${app.tela === t ? "ativo" : ""}">${icone(i)}${r}</button>`).join("")}</nav>`;
+}
+
+/* ---------- Fluxo de compra e venda ---------- */
+function telaFluxo() {
+  const f = app.fluxo;
+  const p = f.produto;
+  const compra = f.modo === "compra";
+  const titulo = compra ? "Comprar" : "Vender";
+  const voltar = `<div class="cabecalho"><button class="voltar" data-fluxo="voltar" aria-label="Voltar">${icone("volta")}</button><h1>${titulo}</h1></div>`;
+  const liquidaEm = somar(app.hoje, p.dias);
+
+  if (f.etapa === "valor") {
+    const valor = f.centavos / 100;
+    return `${voltar}<div class="conteudo"><div class="form">
+      <h2>Qual o valor?</h2>
+      <p>${esc(p.nome)}</p>
+      <input class="entrada-valor" id="valor" inputmode="numeric" value="${moeda(valor)}" aria-label="Valor">
+      ${compra ? `<p style="margin-top:10px">Disponível: <strong style="color:var(--tinta)">${moeda(app.saldos.disponivel)}</strong></p>` : ""}
+      <div class="chips" style="padding:16px 0 0">${[20000, 30000, 40000, 50000].map((v) => `<button class="chip" data-rapido="${v}">${v / 1000} mil</button>`).join("")}</div>
+    </div></div>
+    <div class="rodape"><button class="botao" data-fluxo="revisar" id="continuar" ${valor > 0 ? "" : "disabled"}>Continuar</button></div>`;
+  }
+
+  if (f.etapa === "revisao") {
+    const valor = f.centavos / 100;
+    const depois = Number(app.saldos.disponivel) - valor;
+    return `${voltar}<div class="conteudo"><div class="form">
+      <h2>Confira os dados</h2>
+      <div class="detalhes">
+        <div class="detalhe"><span>Produto</span><span>${esc(p.nome)}</span></div>
+        <div class="detalhe"><span>Valor</span><span>${moeda(valor)}</span></div>
+        <div class="detalhe"><span>Data da operação</span><span>${dia(app.hoje)}</span></div>
+        <div class="detalhe"><span>Liquidação</span><span>${dia(liquidaEm)} (D+${p.dias})</span></div>
+        ${compra ? `<div class="detalhe"><span>Disponível depois</span><span>${moeda(depois)}</span></div>` : ""}
+      </div>
+      <div class="nota">${icone("info")}<span>${compra ? "Vamos reservar esse valor agora. Ele sai do saldo efetivo só na data da liquidação." : "Esse valor entra no saldo projetado agora e no efetivo só na liquidação."}</span></div>
+    </div></div>
+    <div class="rodape"><button class="botao" data-fluxo="confirmar">Confirmar ${compra ? "compra" : "venda"}</button></div>`;
+  }
+
+  if (f.etapa === "enviando") return `<div class="resultado"><div class="girar"></div><h2>Processando</h2><p>${compra ? "Reservando o seu saldo" : "Registrando a sua venda"}</p></div>`;
+
+  if (f.etapa === "ok") return `<div class="resultado">
+      <div class="selo-grande">${icone("ok")}</div>
+      <h2>${compra ? "Compra registrada" : "Venda registrada"}</h2>
+      <p>${moeda(f.centavos / 100)} em ${esc(p.nome)}.<br>Liquida em ${dia(liquidaEm)}.</p>
+    </div>
+    <div class="rodape"><button class="botao" data-ir="inicio">Voltar ao início</button><button class="botao secundario" data-ir="agenda">Ver na agenda</button></div>`;
+
+  return `<div class="resultado">
+      <div class="selo-grande erro">${icone("x")}</div>
+      <h2>Compra recusada</h2>
+      <p>${esc(f.motivo)}</p>
+    </div>
+    <div class="rodape"><button class="botao" data-ir="inicio">Voltar ao início</button></div>`;
+}
+
+async function confirmarFluxo() {
+  const f = app.fluxo;
+  const valor = f.centavos / 100;
+  f.etapa = "enviando"; desenhar();
+  const corpo = { conta_id: app.conta, valor, data_liquidacao: somar(app.hoje, f.produto.dias), ocorrido_em: `${app.hoje}T10:00:00` };
+  await espera(600);
+  try {
+    const r = await chamar(f.modo === "compra" ? "/compras" : "/vendas", corpo);
+    app.produtos[r.operacao_id] = f.produto.nome; guardar();
+    f.etapa = "ok";
+    registrar(f.modo === "compra" ? `Saldo reservado e CompraCriada publicado: ${moeda(valor)}` : `VendaCriada publicado: ${moeda(valor)}`, "ok");
+    atualizarLogo();
+  } catch (e) {
+    if (e.status !== 409) { f.etapa = "erro"; f.motivo = e.message; desenhar(); return; }
+    f.etapa = "erro";
+    f.motivo = `Seu disponível é de ${moeda(app.saldos.disponivel)}. O banco recusou a reserva, e nenhum evento foi gerado.`;
+    registrar(`Reserva recusada por falta de saldo: ${moeda(valor)}`, "barrado");
+  }
+  desenhar();
+}
+
+/* ---------- Folha de detalhes ---------- */
+function folhaOp() {
+  const op = app.ops.find((o) => o.operacao_id === app.folha);
+  if (!op) return "";
+  const pendente = op.status === "PENDENTE";
+  const compra = op.natureza === "DEBITO";
+  return `<div class="veu" data-fechar-folha="1"><div class="folha" data-folha="1">
+    <div class="alca"></div>
+    <h3>${esc(nomeOp(op))}</h3>
+    <div class="rotulo">${compra ? "Compra" : "Venda"} de ${moeda(op.valor)}</div>
+    <div class="passos-op">
+      <div class="passo-op feito"><i></i><span>${compra ? "Saldo reservado" : "Venda registrada"}</span></div>
+      <div class="passo-op ${pendente ? "alerta" : ""}"><i></i><span>${pendente ? "Liquidação em análise" : `Aguardando liquidação em ${dia(op.data_liquidacao)}`}</span></div>
+      <div class="passo-op"><i></i><span>Saldo efetivo atualizado</span></div>
+    </div>
+    <button class="botao secundario" data-cancelar="${esc(op.operacao_id)}">Cancelar operação</button>
+  </div></div>`;
+}
+
+/* ---------- Boas-vindas ---------- */
+function telaBoasVindas() {
+  return `<div class="boas-vindas">
+    <div class="marca">CV</div>
+    <h1>Sua conta de investimentos</h1>
+    <p>Saldos claros: o que já é seu, o que você pode usar e o que ainda vai liquidar.</p>
+    <button class="botao" data-acao="abrir">Abrir conta com R$ 100.000</button>
+  </div>`;
+}
+
+/* ---------- Bastidores ---------- */
+function desenharBastidores() {
+  const el = document.getElementById("bastidores");
+  const cab = `<header><div><h2>Bastidores do sistema</h2><small>${app.conta ? esc(app.conta) : "Nenhuma conta aberta"}</small></div>
+    <div style="display:flex;gap:12px;align-items:center"><button class="fechar-b" data-fechar-b="1">Fechar</button><div class="abas-b">${[["simulador", "Simulador"], ["banco", "Banco de dados"]].map(([v, r]) => `<button data-aba="${v}" class="${app.aba === v ? "ativo" : ""}">${r}</button>`).join("")}</div></div></header>`;
+  const corpo = !app.conta
+    ? `<div class="painel-b"><div class="bloco"><h3>Abra a conta no aplicativo</h3><p style="margin:0">Os controles aparecem depois que a conta existir.</p></div></div>`
+    : app.aba === "banco" ? blocoBanco() : blocoSimulador();
+  if (cab + corpo === desenhado.bastidores) return;
+  desenhado.bastidores = cab + corpo;
+  const rolagem = el.querySelector(".painel-b")?.scrollTop || 0;
+  el.innerHTML = cab + corpo;
+  const painel = el.querySelector(".painel-b");
+  if (painel) painel.scrollTop = rolagem;
+}
+
+function blocoSimulador() {
+  const ops = abertas();
+  const datas = ["2026-11-01", "2026-11-11", "2026-12-01"];
+  return `<div class="painel-b">
+    <div class="bloco"><h3>Data do sistema</h3><p>Avance o tempo para chegar na data de cada liquidação.</p>
+      <div class="linha-data"><span class="data-atual">${curta(app.hoje)}</span>${datas.map((d) => `<button class="b-chip" data-hoje="${d}">${curta(d)}</button>`).join("")}<button class="b-chip" data-hoje="${somar(app.hoje, 1)}">+1 dia</button></div>
+    </div>
+    <div class="bloco"><h3>B3 e back-office</h3><p>Simula a confirmação da liquidação, que chega pelo Kafka.</p>
+      ${ops.length ? ops.map((o) => `<div class="b-op"><div><strong>${esc(nomeOp(o))}</strong><small>${o.natureza === "DEBITO" ? "Compra" : "Venda"} de ${moeda(o.valor)}, vence ${curta(o.data_liquidacao)}</small></div>
+        <button class="b-acao" data-liquidar="${esc(o.operacao_id)}">Liquidar</button>${o.status === "PROVISIONADO" ? `<button class="b-acao neg" data-falhar="${esc(o.operacao_id)}">Falhar</button>` : ""}</div>`).join("") : `<div class="b-op"><div><small>Nenhuma operação aguardando liquidação.</small></div></div>`}
+    </div>
+    <div class="bloco"><h3>Provas</h3><p>O que o sistema faz quando algo dá errado.</p>
+      <div class="provas">
+        <button class="prova" data-prova="reenviar">Enviar evento repetido<small>Mesmo id_evento pelo Kafka</small></button>
+        <button class="prova" data-prova="fechar">Fechar o dia ${curta(app.hoje)}<small>Grava a foto e trava o dia</small></button>
+        <button class="prova" data-prova="conciliar">Conciliar com erro na B3<small>Diferença de R$ 1.000 em ${curta(app.hoje)}</small></button>
+        <button class="prova" data-prova="update-app">UPDATE sem permissão<small>Usuário do sistema</small></button>
+        <button class="prova" data-prova="update-demo">UPDATE com permissão<small>O trigger recusa</small></button>
+        <button class="prova" data-prova="nova">Nova conta<small>Para ensaiar de novo</small></button>
+      </div>
+    </div>
+    <div class="bloco"><h3>Atividade</h3><p>O que acabou de acontecer.</p>
+      <div class="log">${app.log.length ? app.log.map((l) => `<div><time>${l.hora}</time><span class="${l.classe || ""}">${esc(l.texto)}</span></div>`).join("") : `<div><span style="color:var(--apoio)">Nada por enquanto.</span></div>`}</div>
+    </div>
+  </div>`;
+}
+
+function blocoBanco() {
+  const nomes = ["lancamento", "operacao", "saldo_conta", "fechamento_diario", "evento_processado", "outbox", "divergencia"];
+  const colunas = app.linhas.length ? Object.keys(app.linhas[0]) : [];
+  const celula = (v) => esc(v === null ? "" : typeof v === "object" ? JSON.stringify(v) : v);
+  return `<div class="painel-b"><div class="bloco">
+    <div class="chips-b">${nomes.map((n) => `<button class="b-chip ${app.tabela === n ? "ativo" : ""}" data-tabela="${n}">${n}</button>`).join("")}</div>
+    <div class="tabela-b">${colunas.length ? `<table><tr>${colunas.map((c) => `<th>${esc(c)}</th>`).join("")}</tr>${app.linhas.map((l) => `<tr>${colunas.map((c) => `<td>${celula(l[c])}</td>`).join("")}</tr>`).join("")}</table>` : `<div class="vazio">Sem linhas nesta tabela.</div>`}</div>
+  </div></div>`;
+}
+
+/* ---------- Desenho e eventos ---------- */
+function desenhar() {
+  const tela = document.getElementById("tela");
+  const rolagem = tela.querySelector(".conteudo")?.scrollTop || 0;
+  const mesmaTela = tela.dataset.chave === chaveTela();
+  let html;
+  if (!app.conta || !app.saldos || !app.extrato) html = app.conta ? "" : telaBoasVindas();
+  else if (app.fluxo && app.fluxo.etapa !== "fim") html = telaFluxo();
+  else html = { inicio: telaInicio, extrato: telaExtrato, agenda: telaAgenda, investir: telaInvestir }[app.tela]();
+  html += app.folha ? folhaOp() : "";
+  if (html !== desenhado.tela) { // redesenhar sem mudança reiniciaria as animações
+    desenhado.tela = html;
+    tela.innerHTML = html;
+    tela.dataset.chave = chaveTela();
+    const cont = tela.querySelector(".conteudo");
+    if (cont && mesmaTela) { cont.style.animation = "none"; cont.scrollTop = rolagem; }
+    const entrada = document.getElementById("valor");
+    if (entrada) { entrada.focus(); entrada.setSelectionRange(99, 99); }
+  }
+  desenharBastidores();
+}
+const desenhado = { tela: null, bastidores: null };
+const chaveTela = () => `${app.conta}-${app.tela}-${app.fluxo?.etapa || ""}`;
+
+async function atualizarLogo() {
+  for (let i = 0; i < 8; i++) { await espera(450); await carregar(); pintarSeguro(); }
+}
+function pintarSeguro() { if (document.activeElement?.id !== "projecao" && !(app.fluxo && app.fluxo.etapa === "valor")) desenhar(); }
+
+async function acaoProva(tipo) {
+  const c = app.conta;
+  if (tipo === "reenviar") {
+    const antes = (await chamar(`/demo/tabelas/lancamento?conta_id=${c}`)).length;
+    let r; try { r = await chamar("/demo/reenviar", { conta_id: c }); } catch (e) { registrar("Ainda não há evento para reenviar.", "barrado"); return; }
+    registrar(`${r.tipo} enviado de novo. Aguardando o Ledger`);
+    desenhar(); await espera(2200);
+    const depois = (await chamar(`/demo/tabelas/lancamento?conta_id=${c}`)).length;
+    registrar(`Evento repetido barrado. Linhas no livro: ${antes} antes, ${depois} depois.`, "ok");
+  } else if (tipo === "fechar") {
+    const r = await chamar("/demo/fechar", { conta_id: c, dia: app.hoje });
+    registrar(r.contas_fechadas ? `Dia ${curta(app.hoje)} fechado e travado.` : `O dia ${curta(app.hoje)} já estava fechado.`, "ok");
+  } else if (tipo === "conciliar") {
+    const r = await chamar("/demo/conciliar", { conta_id: c, dia: app.hoje, erro_b3: 1000 });
+    registrar(r.divergencias ? `${r.divergencias} divergência registrada em ${curta(app.hoje)}.` : `Nada novo: feche o dia ${curta(app.hoje)} antes de conciliar, ou a diferença já foi registrada.`, r.divergencias ? "barrado" : "");
+  } else if (tipo === "update-app" || tipo === "update-demo") {
+    const r = await chamar("/demo/alterar", { conta_id: c, usuario: tipo === "update-app" ? "app" : "demo" });
+    registrar(r.recusado ? `Banco recusou: ${r.erro}` : "O banco aceitou o UPDATE.", "barrado");
+  } else if (tipo === "nova") {
+    const n = await chamar("/demo/proxima-conta");
+    app.conta = null; app.saldos = null; app.extrato = null; app.ops = []; app.hoje = "2026-11-01"; app.tela = "inicio"; app.log = []; app.fluxo = null; app.projecao = null;
+    guardar(); registrar(`Próxima conta será ${n.conta_id}.`);
+  }
+}
+
+document.addEventListener("click", async (ev) => {
+  const alvo = ev.target.closest("button, [data-fechar-folha]");
+  if (!alvo) return;
+  const d = alvo.dataset;
+
+  if (d.folha) return;
+  if (d.fecharFolha !== undefined && !ev.target.closest(".folha")) { app.folha = null; desenhar(); return; }
+
+  if (d.ir) { app.tela = d.ir; if (d.modo) app.modo = d.modo; app.fluxo = null; app.folha = null; desenhar(); return; }
+  if (d.op) { app.folha = d.op; desenhar(); return; }
+  if (d.modoAba) { app.modo = d.modoAba; desenhar(); return; }
+  if (d.visao) { app.visao = d.visao; await carregar(); desenhar(); return; }
+  if (d.periodo) { app.periodo = d.periodo; await carregar(); desenhar(); return; }
+  if (d.produto) { app.fluxo = { modo: app.modo, produto: PRODUTOS.find((p) => p.id === d.produto), etapa: "valor", centavos: 0 }; desenhar(); return; }
+  if (d.rapido) { app.fluxo.centavos = Number(d.rapido) * 100; desenhar(); return; }
+  if (d.fluxo === "voltar") { if (app.fluxo.etapa === "revisao") app.fluxo.etapa = "valor"; else app.fluxo = null; desenhar(); return; }
+  if (d.fluxo === "revisar") { app.fluxo.etapa = "revisao"; desenhar(); return; }
+  if (d.fluxo === "confirmar") { confirmarFluxo(); return; }
+  if (d.acao === "olho") { app.oculto = !app.oculto; desenhar(); return; }
+  if (d.acao === "abrir") {
+    const n = await chamar("/demo/proxima-conta");
+    await chamar("/demo/abrir", { conta_id: n.conta_id, valor: 100000, dia: "2026-10-31" });
+    await chamar("/demo/fechar", { conta_id: n.conta_id, dia: "2026-10-31" });
+    app.conta = n.conta_id; app.hoje = "2026-11-01"; app.produtos = {}; app.projecao = null; guardar();
+    registrar(`Conta ${n.conta_id} aberta com R$ 100.000.`, "ok");
+    await carregar(); desenhar(); return;
+  }
+  if (d.cancelar) {
+    await chamar(`/operacoes/${d.cancelar}/cancelar`, { operacao_id: d.cancelar, ocorrido_em: `${app.hoje}T12:00:00` });
+    registrar("OperacaoCancelada publicado. O valor volta ao disponível.", "ok");
+    app.folha = null; desenhar(); atualizarLogo(); return;
+  }
+  if (d.aba) { app.aba = d.aba; await carregar(); desenhar(); return; }
+  if (d.tabela) { app.tabela = d.tabela; await carregar(); desenhar(); return; }
+  if (d.hoje) { app.hoje = d.hoje; app.projecao = null; guardar(); registrar(`Data do sistema: ${curta(app.hoje)}.`); await carregar(); desenhar(); return; }
+  if (d.liquidar || d.falhar) {
+    const operacao_id = d.liquidar || d.falhar;
+    await chamar(d.liquidar ? "/demo/liquidar" : "/demo/falhar", { operacao_id, ocorrido_em: `${app.hoje}T18:00:00` });
+    registrar(d.liquidar ? "LiquidacaoConfirmada publicado. Efetivo será atualizado." : "LiquidacaoFalhou publicado. Valor segue reservado.", d.liquidar ? "ok" : "barrado");
+    desenhar(); atualizarLogo(); return;
+  }
+  if (d.prova) { await acaoProva(d.prova); await carregar(); desenhar(); return; }
+  if (d.fecharB) { document.getElementById("bastidores").classList.remove("aberto"); return; }
+  if (alvo.id === "abrirB") { document.getElementById("bastidores").classList.add("aberto"); return; }
+});
+
+document.addEventListener("input", (ev) => {
+  if (ev.target.id !== "valor") return;
+  const centavos = Number(ev.target.value.replace(/\D/g, "")) || 0;
+  app.fluxo.centavos = Math.min(centavos, 99999999999);
+  ev.target.value = moeda(app.fluxo.centavos / 100);
+  document.getElementById("continuar").disabled = app.fluxo.centavos <= 0;
+});
+
+document.addEventListener("change", async (ev) => {
+  if (ev.target.id === "projecao") { app.projecao = ev.target.value; ev.target.blur(); await carregar(); desenhar(); }
+});
+
+(async function iniciar() {
+  const salvo = lembrar();
+  app.conta = salvo.conta || null; app.hoje = salvo.hoje || app.hoje; app.produtos = salvo.produtos || {};
+  await carregar(); await carregar(); desenhar();
+  setInterval(async () => { if (app.conta) { await carregar(); pintarSeguro(); } }, 2500);
+})();
 </script>
 </body>
 </html>

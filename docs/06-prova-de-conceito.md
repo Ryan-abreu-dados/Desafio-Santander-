@@ -16,7 +16,7 @@ Troque cada senha do `.env` por um valor seu e suba tudo:
 docker compose up -d --build --wait
 ```
 
-Abra <http://localhost:8000> e clique em **Executar próximo passo**. A tela percorre o exemplo do case, do saldo inicial até o `UPDATE` recusado pelo banco.
+Abra <http://localhost:8000>. À esquerda fica o aplicativo do cliente, com investimento, agenda e extrato. À direita ficam os **bastidores**: a data do sistema, a liquidação simulada da B3, as provas de falha e as tabelas do banco.
 
 ## Testes
 
