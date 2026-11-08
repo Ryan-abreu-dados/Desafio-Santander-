@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conta Virtual de Investimentos</title>
+<style>
+  :root { --vermelho: #ec0000; --ceu: #deedf2; --tinta: #1a1a1a; --apoio: #595959; --linha: #d7dfe3; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: var(--tinta); background: #fff; }
+  header { background: var(--vermelho); color: #fff; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 22px; }
+  header .info { display: flex; gap: 24px; font-size: 15px; font-weight: bold; }
+  main { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 20px; padding: 20px 28px; }
+  h2 { font-size: 16px; margin: 0 0 10px; }
+  .painel { background: var(--ceu); border-radius: 10px; padding: 16px; }
+  ol { list-style: none; margin: 0; padding: 0; }
+  ol li { padding: 7px 8px; border-radius: 6px; font-size: 14px; line-height: 1.3; }
+  ol li.feito { color: var(--apoio); }
+  ol li.feito::before { content: "✓ "; font-weight: bold; }
+  ol li.atual { background: #fff; font-weight: bold; }
+  button { font: inherit; cursor: pointer; border-radius: 6px; padding: 10px 14px; border: 1px solid var(--vermelho); background: #fff; color: var(--vermelho); font-weight: bold; }
+  button.principal { background: var(--vermelho); color: #fff; width: 100%; margin-top: 12px; }
+  button:disabled { opacity: .5; cursor: wait; }
+  button.texto { border: 0; background: none; padding: 8px 0 0; font-weight: normal; text-decoration: underline; color: var(--apoio); }
+  .aviso { background: #fff; border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 14px; line-height: 1.4; min-height: 64px; }
+  .aviso.erro { color: var(--vermelho); font-weight: bold; }
+  .cartoes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .cartao { border: 1px solid var(--linha); border-radius: 10px; padding: 14px 16px; }
+  .cartao small { color: var(--apoio); font-size: 13px; }
+  .cartao .rotulo { color: var(--vermelho); font-weight: bold; font-size: 15px; }
+  .cartao .valor { font-size: 30px; font-weight: bold; margin: 6px 0 4px; font-variant-numeric: tabular-nums; }
+  .abas { display: flex; gap: 6px; margin: 4px 0 10px; flex-wrap: wrap; }
+  .abas button { padding: 6px 10px; font-size: 13px; font-weight: normal; }
+  .abas button.ativa { background: var(--vermelho); color: #fff; }
+  .tabela { overflow: auto; max-height: 300px; border: 1px solid var(--linha); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { padding: 7px 10px; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--linha); }
+  th { background: var(--ceu); position: sticky; top: 0; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.aberto td { color: var(--apoio); font-style: italic; }
+  tr.total td { font-weight: bold; }
+  section { margin-bottom: 18px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } .cartoes { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Conta Virtual de Investimentos</h1>
+  <div class="info"><span id="conta">Sem conta</span><span>Hoje: <span id="hoje">-</span></span></div>
+</header>
+<main>
+  <aside class="painel">
+    <h2>Roteiro da demonstração</h2>
+    <ol id="passos"></ol>
+    <button class="principal" id="avancar">Executar próximo passo</button>
+    <div class="aviso" id="aviso">Clique para começar.</div>
+    <button class="texto" id="recomecar">Recomeçar com uma conta nova</button>
+  </aside>
+  <div>
+    <div class="cartoes">
+      <div class="cartao"><div class="rotulo">Efetivo</div><div class="valor" id="efetivo">-</div><small>Só o que já liquidou</small></div>
+      <div class="cartao"><div class="rotulo">Disponível</div><div class="valor" id="disponivel">-</div><small>O que ainda pode ser gasto</small></div>
+      <div class="cartao"><div class="rotulo">Projetado em <select id="dataProjecao"><option value="2026-11-11">11/11</option><option value="2026-12-01">01/12</option></select></div><div class="valor" id="projetado">-</div><small>Inclui o que vai liquidar</small></div>
+    </div>
+    <section>
+      <h2>Extrato de 01/11 a 01/12</h2>
+      <div class="abas" id="abasExtrato"></div>
+      <div class="tabela"><table id="extrato"></table></div>
+    </section>
+    <section>
+      <h2>O que está salvo no banco</h2>
+      <div class="abas" id="abasBanco"></div>
+      <div class="tabela"><table id="banco"></table></div>
+    </section>
+  </div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const dinheiro = (v) => v == null ? "-" : Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const dataBR = (d) => d.split("-").reverse().slice(0, 2).join("/");
+const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+const estado = { conta: null, hoje: "2026-11-01", ops: {}, passo: 0, visao: "efetivo", tabela: "lancamento" };
+
+async function chamar(url, corpo) {
+  const r = await fetch(url, corpo ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) } : undefined);
+  const dados = await r.json();
+  if (!r.ok) { const e = new Error(dados.detail); e.status = r.status; throw e; }
+  return dados;
+}
+const quando = (hora) => `${estado.hoje}T${hora}:00`;
+const ordem = (valor, data_liquidacao) => ({ conta_id: estado.conta, valor, data_liquidacao, ocorrido_em: quando("10:00") });
+const liquidar = (op) => chamar("/demo/liquidar", { operacao_id: estado.ops[op], ocorrido_em: quando("18:00") });
+const fechar = () => chamar("/demo/fechar", { conta_id: estado.conta, dia: estado.hoje });
+const linhasLivro = async () => (await chamar(`/demo/tabelas/lancamento?conta_id=${estado.conta}`)).length;
+
+const PASSOS = [
+  { titulo: "Abrir a conta com R$ 100 mil", hoje: "2026-11-01", acao: async () => {
+    await chamar("/demo/abrir", { conta_id: estado.conta, valor: 100000, dia: "2026-10-31" });
+    await chamar("/demo/fechar", { conta_id: estado.conta, dia: "2026-10-31" });
+    return "Saldo inicial gravado como uma linha no livro.";
+  } },
+  { titulo: "Comprar R$ 30 mil, liquida em D+0", acao: async () => {
+    estado.ops.c30 = (await chamar("/compras", ordem(30000, "2026-11-01"))).operacao_id;
+    return "Dinheiro reservado: o disponível caiu, o efetivo não mudou.";
+  } },
+  { titulo: "B3 confirma a liquidação de R$ 30 mil", acao: async () => {
+    await liquidar("c30");
+    return "Agora o efetivo mudou: R$ 70 mil. Uma linha nova entrou no livro.";
+  } },
+  { titulo: "Comprar R$ 40 mil, liquida em D+10", acao: async () => {
+    estado.ops.c40 = (await chamar("/compras", ordem(40000, "2026-11-11"))).operacao_id;
+    $("dataProjecao").value = "2026-11-11";
+    return "Projetado em 11/11: R$ 30 mil. Disponível: R$ 30 mil.";
+  } },
+  { titulo: "Vender R$ 20 mil, liquida em D+30", acao: async () => {
+    estado.ops.v20 = (await chamar("/vendas", ordem(20000, "2026-12-01"))).operacao_id;
+    $("dataProjecao").value = "2026-12-01";
+    return "Projetado em 01/12: R$ 50 mil. A venda não aumenta o disponível, porque o dinheiro ainda não chegou.";
+  } },
+  { titulo: "Tentar comprar R$ 50 mil sem saldo", acao: async () => {
+    try { await chamar("/compras", ordem(50000, "2026-11-20")); return "Inesperado: a compra passou."; }
+    catch (e) { if (e.status === 409) return `Recusada na hora. ${e.message}`; throw e; }
+  } },
+  { titulo: "Reenviar o mesmo evento pelo Kafka", acao: async () => {
+    const antes = await linhasLivro();
+    const r = await chamar("/demo/reenviar", { conta_id: estado.conta });
+    await espera(2000);
+    return `${r.tipo} enviado de novo com o mesmo id_evento. Linhas no livro: ${antes} antes, ${await linhasLivro()} depois. O saldo não mudou.`;
+  } },
+  { titulo: "Fechar o dia 01/11", acao: async () => { await fechar(); return "Foto do dia gravada em fechamento_diario. Esse dia não muda mais."; } },
+  { titulo: "11/11: B3 liquida a compra de R$ 40 mil", hoje: "2026-11-11", acao: async () => {
+    await liquidar("c40");
+    $("dataProjecao").value = "2026-12-01";
+    return "Efetivo em 11/11: R$ 30 mil.";
+  } },
+  { titulo: "Fechar o dia 11/11", acao: async () => { await fechar(); return "Dia 11/11 fechado."; } },
+  { titulo: "01/12: B3 liquida a venda de R$ 20 mil", hoje: "2026-12-01", acao: async () => { await liquidar("v20"); return "Efetivo em 01/12: R$ 50 mil, como pede o case."; } },
+  { titulo: "Fechar o dia 01/12", acao: async () => { await fechar(); return "Dia 01/12 fechado."; } },
+  { titulo: "Conciliar 11/11 com um erro na B3", tabela: "divergencia", acao: async () => {
+    const r = await chamar("/demo/conciliar", { conta_id: estado.conta, dia: "2026-11-11", erro_b3: 1000 });
+    return `${r.divergencias} divergência registrada: o arquivo simulado da B3 veio com R$ 1.000 de diferença.`;
+  } },
+  { titulo: "Tentar UPDATE com o usuário do sistema", tabela: "lancamento", acao: async () => {
+    const r = await chamar("/demo/alterar", { conta_id: estado.conta, usuario: "app" });
+    return r.recusado ? `Banco recusou: ${r.erro}` : "Inesperado: o banco aceitou.";
+  } },
+  { titulo: "Tentar UPDATE com usuário que tem permissão", acao: async () => {
+    const r = await chamar("/demo/alterar", { conta_id: estado.conta, usuario: "demo" });
+    return r.recusado ? `Trigger recusou: ${r.erro}` : "Inesperado: o banco aceitou.";
+  } },
+];
+
+function desenharPassos() {
+  const lista = $("passos");
+  lista.replaceChildren(...PASSOS.map((p, i) => {
+    const li = document.createElement("li");
+    li.textContent = `${i + 1}. ${p.titulo}`;
+    li.className = i < estado.passo ? "feito" : i === estado.passo ? "atual" : "";
+    return li;
+  }));
+  $("avancar").textContent = estado.passo < PASSOS.length ? "Executar próximo passo" : "Demonstração concluída";
+  $("avancar").disabled = estado.passo >= PASSOS.length;
+}
+
+function preencher(tabela, colunas, linhas, classe) {
+  const cab = document.createElement("tr");
+  colunas.forEach((c) => { const th = document.createElement("th"); th.textContent = c; cab.append(th); });
+  const corpo = linhas.map((l) => {
+    const tr = document.createElement("tr");
+    if (classe) tr.className = classe(l);
+    colunas.forEach((c) => {
+      const td = document.createElement("td");
+      const v = l[c];
+      td.textContent = v == null ? "" : typeof v === "object" ? JSON.stringify(v) : v;
+      tr.append(td);
+    });
+    return tr;
+  });
+  tabela.replaceChildren(cab, ...corpo);
+}
+
+async function atualizar() {
+  $("conta").textContent = estado.conta || "Sem conta";
+  $("hoje").textContent = dataBR(estado.hoje);
+  if (!estado.conta || estado.passo === 0) return;
+  try {
+    const s = await chamar(`/contas/${estado.conta}/saldos?hoje=${estado.hoje}&data_projecao=${$("dataProjecao").value}`);
+    $("efetivo").textContent = dinheiro(s.efetivo);
+    $("disponivel").textContent = dinheiro(s.disponivel);
+    $("projetado").textContent = dinheiro(s.projetado);
+    const e = await chamar(`/contas/${estado.conta}/extrato?inicio=2026-11-01&fim=2026-12-01&hoje=${estado.hoje}&visao=${estado.visao}`);
+    const linhas = [
+      { Data: "", "Lançamento": "Saldo inicial", "Situação": "", Valor: dinheiro(e.saldo_inicial), t: 1 },
+      ...e.linhas.map((l) => ({ Data: dataBR(l.data), "Lançamento": l.tipo, "Situação": l.marca, Valor: dinheiro(l.valor), aberto: l.aberto })),
+      { Data: "", "Lançamento": "Saldo final", "Situação": "", Valor: dinheiro(e.saldo_final), t: 1 },
+    ];
+    preencher($("extrato"), ["Data", "Lançamento", "Situação", "Valor"], linhas, (l) => l.t ? "total" : l.aberto ? "aberto" : "");
+    const dados = await chamar(`/demo/tabelas/${estado.tabela}?conta_id=${estado.conta}`);
+    preencher($("banco"), dados.length ? Object.keys(dados[0]) : ["Sem linhas"], dados);
+  } catch (erro) { /* a conta pode ainda não existir no primeiro instante */ }
+}
+
+function abas(alvo, nomes, atual, aoEscolher) {
+  const desenhar = (selecionada) => alvo.replaceChildren(...nomes.map(([valor, rotulo]) => {
+    const b = document.createElement("button");
+    b.textContent = rotulo;
+    b.className = valor === selecionada ? "ativa" : "";
+    b.onclick = () => { desenhar(valor); aoEscolher(valor); atualizar(); };
+    return b;
+  }));
+  desenhar(atual);
+  return desenhar;
+}
+
+abas($("abasExtrato"), [["efetivo", "Efetivo"], ["projetado", "Projetado"]], estado.visao, (v) => estado.visao = v);
+const marcarTabela = abas($("abasBanco"), ["lancamento", "operacao", "saldo_conta", "fechamento_diario", "evento_processado", "outbox", "divergencia"].map((t) => [t, t]), estado.tabela, (v) => estado.tabela = v);
+$("dataProjecao").onchange = atualizar;
+
+async function novaConta() {
+  estado.conta = (await chamar("/demo/proxima-conta")).conta_id;
+  estado.passo = 0; estado.ops = {}; estado.hoje = "2026-11-01";
+  ["efetivo", "disponivel", "projetado"].forEach((id) => $(id).textContent = "-");
+  $("extrato").replaceChildren(); $("banco").replaceChildren();
+  $("aviso").textContent = "Clique para começar."; $("aviso").className = "aviso";
+  desenharPassos(); atualizar();
+}
+
+$("recomecar").onclick = novaConta;
+$("avancar").onclick = async () => {
+  const passo = PASSOS[estado.passo];
+  $("avancar").disabled = true;
+  try {
+    if (passo.hoje) estado.hoje = passo.hoje;
+    if (passo.tabela) { estado.tabela = passo.tabela; marcarTabela(passo.tabela); }
+    const msg = await passo.acao();
+    await espera(1200);
+    $("aviso").textContent = msg; $("aviso").className = "aviso";
+    estado.passo++;
+  } catch (erro) {
+    $("aviso").textContent = `Erro: ${erro.message}`; $("aviso").className = "aviso erro";
+  }
+  desenharPassos(); await atualizar();
+};
+
+desenharPassos();
+novaConta();
+setInterval(atualizar, 3000);
+</script>
+</body>
+</html>
