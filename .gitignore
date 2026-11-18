@@ -34,3 +34,9 @@ Thumbs.db
 desktop.ini
 .vscode/
 .idea/
+
+# Vídeos e downloads do Drive (grandes e pessoais)
+Santander/
+drive-download-*.zip
+*.mp4
+*.mov
