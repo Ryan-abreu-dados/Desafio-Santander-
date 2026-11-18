@@ -10,6 +10,12 @@ Os dois saldos precisam ser **auditáveis** (dá para explicar cada centavo) e *
 > Solução para o case técnico "Conta Corrente Virtual de Investimentos", apresentado em um meetup de tecnologia.
 > Todos os dados deste repositório são **fictícios**.
 
+## Vídeo
+
+Explicação da solução e demonstração funcionando: [Como eu resolvi o case técnico do Santander: Ledger, Kafka e Idempotência](https://youtu.be/QRq84DgWVuk)
+
+Para rodar o projeto no seu computador, veja [Prova de conceito](docs/06-prova-de-conceito.md).
+
 ## O problema em uma frase
 
 Como garantir que a contabilização fique correta mesmo quando há **falhas, atrasos e eventos duplicados**?
